@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Send, Crown, Lock, Sparkles } from "lucide-react";
+import { Star, Send, Crown, Lock, Sparkles, Heart, Compass, Moon, MessageCircle } from "lucide-react";
 
 /* ── Admin mode ── */
 const ADMIN_PASSWORD = "libertad2024admin";
@@ -307,6 +307,33 @@ const STORAGE_KEYS: Record<string, string> = {
   chat: "libertad_oracle_chat_count",
 };
 
+const ritualPaths = [
+  {
+    title: "Claridad",
+    description: "Entender una situación que ahora te pesa o te confunde.",
+    prompt: "Necesito comprender con más claridad esta situación: ",
+    icon: Compass,
+  },
+  {
+    title: "Amor y vínculos",
+    description: "Mirar un lazo, una emoción o aquello que no se está diciendo.",
+    prompt: "Quiero comprender qué ocurre en este vínculo: ",
+    icon: Heart,
+  },
+  {
+    title: "Mi camino",
+    description: "Escuchar qué movimiento interior está pidiendo espacio en ti.",
+    prompt: "Quiero recibir guía para mi camino personal sobre: ",
+    icon: Moon,
+  },
+  {
+    title: "Una pregunta libre",
+    description: "Trae exactamente aquello que hoy necesita una respuesta.",
+    prompt: "",
+    icon: MessageCircle,
+  },
+];
+
 export default function OracleSection() {
   const [activeTab, setActiveTab] = useState<TabKey>("tarot");
   const [question, setQuestion] = useState("");
@@ -322,6 +349,8 @@ export default function OracleSection() {
   const [mounted, setMounted] = useState(false);
   const [adminMode, setAdminModeState] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [ritualStarted, setRitualStarted] = useState(false);
+  const [ritualPath, setRitualPath] = useState<string | null>(null);
 
   // Theme management
   useEffect(() => {
@@ -482,6 +511,15 @@ export default function OracleSection() {
 
   const dailyMessage = getDailyMessage();
 
+  const beginRitual = (path: (typeof ritualPaths)[number]) => {
+    setRitualPath(path.title);
+    setActiveTab("tarot");
+    setQuestion(path.prompt);
+    setResult(null);
+    setSuggestedQuestions([]);
+    setRitualStarted(true);
+  };
+
   if (!mounted) return null;
 
   return (
@@ -503,7 +541,7 @@ export default function OracleSection() {
           <p
             className="text-sm md:text-base tracking-[0.1em] subtitle-gold"
           >
-            Inteligencia espiritual entrenada por Libertad Molina
+            Un espacio para escuchar lo que dentro de ti ya se está moviendo
           </p>
         </motion.div>
 
@@ -522,6 +560,60 @@ export default function OracleSection() {
             }}
           >
             <div className="bg-[#0A0A0A] rounded-2xl p-4 sm:p-6 md:p-8">
+              {!ritualStarted ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.55 }}
+                  className="relative overflow-hidden rounded-xl border border-[#D4AF37]/20 bg-[radial-gradient(circle_at_50%_0%,rgba(233,88,114,0.14),transparent_43%),linear-gradient(145deg,#181214,#0d0d0d_60%)] px-5 py-8 sm:px-9 sm:py-10"
+                >
+                  <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[#E8D48B] to-transparent opacity-70" />
+                  <div className="relative mx-auto max-w-2xl text-center">
+                    <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#E8D48B]/40 bg-black/30">
+                      <Sparkles className="h-5 w-5 text-[#E8D48B]" />
+                    </div>
+                    <p className="font-[var(--font-cinzel)] text-[10px] tracking-[0.28em] text-[#D4AF37] uppercase">Elige tu puerta</p>
+                    <h3 className="mt-3 font-[var(--font-playfair)] text-2xl leading-tight text-[#F7F0E2] sm:text-3xl">¿Qué necesita comprender tu alma hoy?</h3>
+                    <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-[#B8B1A7]">No necesitas saber cómo preguntar. Empieza por aquello que más presencia tiene en ti ahora mismo.</p>
+                  </div>
+                  <div className="relative mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {ritualPaths.map((path, index) => {
+                      const Icon = path.icon;
+                      return (
+                        <motion.button
+                          key={path.title}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.12 + index * 0.08 }}
+                          onClick={() => beginRitual(path)}
+                          className="group flex min-h-28 items-start gap-4 rounded-xl border border-[#D4AF37]/15 bg-black/25 p-5 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-[#E8D48B]/60 hover:bg-[#D4AF37]/[0.08] hover:shadow-[0_8px_30px_rgba(212,175,55,0.08)]"
+                        >
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#D4AF37]/30 text-[#E8D48B] transition-colors group-hover:bg-[#D4AF37] group-hover:text-black"><Icon className="h-4 w-4" /></span>
+                          <span>
+                            <span className="block font-[var(--font-cinzel)] text-xs tracking-[0.13em] text-[#E8D48B] uppercase">{path.title}</span>
+                            <span className="mt-1.5 block text-xs leading-relaxed text-[#AAA39A]">{path.description}</span>
+                          </span>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                  <p className="relative mt-6 text-center text-[11px] italic text-[#8A8178]">Una lectura gratuita para abrir el camino. Sin prisas.</p>
+                </motion.div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRitualStarted(false);
+                      setRitualPath(null);
+                      setQuestion("");
+                      setResult(null);
+                    }}
+                    className="mb-6 flex w-full items-center justify-center gap-2 text-center text-[10px] font-[var(--font-cinzel)] tracking-[0.17em] text-[#D4AF37]/75 uppercase transition-colors hover:text-[#E8D48B]"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    {ritualPath ? `Puerta elegida: ${ritualPath}` : "Volver a elegir mi puerta"}
+                  </button>
               {/* Tabs */}
               <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8">
                 {tabs.map((tab) => (
@@ -957,6 +1049,8 @@ export default function OracleSection() {
                   )}
                 </motion.div>
               </AnimatePresence>
+                </>
+              )}
             </div>
           </div>
         </motion.div>
