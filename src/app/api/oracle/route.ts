@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { LIBERTAD_ORACLE_BRAIN } from "@/lib/libertad-brain";
 
 /* ══════════════════════════════════════════════════════════════
    SISTEMA DE ORÁCULO v2 — ARQUITECTURA ANTI-REPETICIÓN
@@ -355,7 +356,7 @@ function buildSystemPrompt(
   const selectedDepth = depthKeys[Math.floor(Math.random() * depthKeys.length)];
 
   // ── Build prompt ──
-  let prompt = base;
+  let prompt = `${LIBERTAD_ORACLE_BRAIN}\n\n${base}`;
   prompt += `\n\n${interpretationLayers[selectedLayer]}`;
   prompt += `\n\n${narrativeStyles[selectedStyle]}`;
   prompt += `\n\n${depthLevels[selectedDepth]}`;
@@ -533,22 +534,38 @@ export async function POST(request: NextRequest) {
     const temperature = temperatures[Math.floor(Math.random() * temperatures.length)];
 
     try {
-      const ZAI = (await import("z-ai-web-dev-sdk")).default;
-      const zai = await ZAI.create();
+      let fullMessage = "";
+      const geminiKey = process.env.GEMINI_API_KEY;
 
-      const response = await zai.chat.completions.create({
-        model: "deepseek-chat",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: question },
-        ],
-        temperature,
-        max_tokens: 1800,
-      });
+      if (geminiKey) {
+        const geminiResponse = await fetch(
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemPrompt }] },
+              contents: [{ role: "user", parts: [{ text: question }] }],
+              generationConfig: { temperature, maxOutputTokens: 1800 },
+            }),
+          }
+        );
+        if (!geminiResponse.ok) throw new Error(`Gemini respondió ${geminiResponse.status}`);
+        const geminiData = await geminiResponse.json();
+        fullMessage = geminiData.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || "").join("") || "";
+      } else {
+        const ZAI = (await import("z-ai-web-dev-sdk")).default;
+        const zai = await ZAI.create();
+        const response = await zai.chat.completions.create({
+          model: "deepseek-chat",
+          messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }],
+          temperature,
+          max_tokens: 1800,
+        });
+        fullMessage = response.choices?.[0]?.message?.content || "";
+      }
 
-      const fullMessage =
-        response.choices?.[0]?.message?.content ||
-        "Vaya, parece que ahora mismo no puedo conectar bien. Inténtalo de nuevo en un ratito, ¿vale?";
+      if (!fullMessage) fullMessage = "Vaya, parece que ahora mismo no puedo conectar bien. Inténtalo de nuevo en un ratito, ¿vale?";
 
       // Parse the response
       const match = fullMessage.match(/---\s*\n([\s\S]*)$/);
