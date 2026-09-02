@@ -1,21 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Eye, Gem, MessageCircle, WandSparkles } from "lucide-react";
+import { Eye, Gem, MessageCircle, WandSparkles, Sparkles } from "lucide-react";
 import { type LucideIcon } from "lucide-react";
-
-interface CTAButton {
-  label: string;
-  tabId: string;
-  emoji: string;
-}
-
-const ctaButtons: CTAButton[] = [
-  { label: "TAROT GRATIS", tabId: "tarot", emoji: "🃏" },
-  { label: "RUNAS GRATIS", tabId: "runas", emoji: "ᛟ" },
-  { label: "CHAT ESPIRITUAL", tabId: "chat", emoji: "✨" },
-  { label: "MENSAJE DEL DÍA", tabId: "daily", emoji: "🌟" },
-];
 
 const systemItems = [
   { icon: Eye, label: "TAROT" },
@@ -89,16 +76,10 @@ function GoldFeatureBar() {
 }
 
 export default function CTAFinalSection() {
-  const handleClick = (tabId: string) => {
+  const openOracle = () => {
     const oracleSection = document.querySelector("#oraculo");
     if (oracleSection) {
       oracleSection.scrollIntoView({ behavior: "smooth" });
-      // Dispatch custom event for the oracle section to pick up the tab
-      setTimeout(() => {
-        window.dispatchEvent(
-          new CustomEvent("oracle-switch-tab", { detail: tabId })
-        );
-      }, 600);
     }
   };
 
@@ -125,7 +106,7 @@ export default function CTAFinalSection() {
           transition={{ duration: 0.8 }}
           className="font-[var(--font-cinzel)] text-2xl sm:text-3xl md:text-4xl lg:text-5xl tracking-[0.15em] uppercase mb-6 section-title-gold"
         >
-          CONSULTA GRATIS CON EL ORÁCULO
+          TU SIGUIENTE PASO
         </motion.h2>
 
         {/* Description */}
@@ -136,34 +117,37 @@ export default function CTAFinalSection() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-[#CCCCCC] text-sm md:text-base leading-relaxed max-w-2xl mx-auto mb-12"
         >
-          Conecta ahora con mi ORÁCULO DE LIBERTAD y descubre lo que las cartas,
-          runas y canalizaciones tienen para ti. Sin compromiso, sin filtros.
-          Solo una conversación honesta entre tú y el Universo.
+          Puedes empezar con una primera lectura gratuita o, si ya sabes que
+          necesitas acompañamiento, hablar directamente con Libertad.
         </motion.p>
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4">
-          {ctaButtons.map((btn, i) => (
-            <motion.button
-              key={btn.tabId}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 + i * 0.1 }}
-              animate={{ y: [0, -6, 0] }}
-              whileHover={{ scale: 1.05 }}
-              onClick={() => handleClick(btn.tabId)}
-              className="px-6 sm:px-8 py-3 sm:py-4 rounded-full text-black font-[var(--font-cinzel)] text-xs sm:text-sm tracking-[0.1em] uppercase hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] transition-shadow duration-300 cursor-pointer"
-              style={{
-                backgroundImage:
-                  "linear-gradient(135deg, #E8D48B, #D4AF37, #C9A84C)",
-                animation: `float 3s ease-in-out infinite`,
-                animationDelay: `${i * 0.5}s`,
-              }}
-            >
-              {btn.emoji} {btn.label}
-            </motion.button>
-          ))}
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            whileHover={{ scale: 1.04 }}
+            onClick={openOracle}
+            className="px-7 sm:px-8 py-3.5 sm:py-4 rounded-full text-black font-[var(--font-cinzel)] text-xs sm:text-sm tracking-[0.1em] uppercase hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] transition-shadow duration-300 cursor-pointer"
+            style={{ backgroundImage: "linear-gradient(135deg, #E8D48B, #D4AF37, #C9A84C)" }}
+          >
+            <Sparkles className="mr-2 inline h-4 w-4" /> Abrir el oráculo
+          </motion.button>
+          <motion.a
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.42 }}
+            whileHover={{ scale: 1.04 }}
+            href="https://wa.me/34634451693?text=Hola%20Libertad%2C%20me%20gustar%C3%ADa%20hablar%20contigo%20sobre%20una%20consulta%20personal%20%E2%9C%A8"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-7 sm:px-8 py-3.5 sm:py-4 rounded-full border border-[#D4AF37]/60 text-[#E8D48B] font-[var(--font-cinzel)] text-xs sm:text-sm tracking-[0.1em] uppercase hover:border-[#E8D48B] hover:bg-[#D4AF37]/10 transition-all duration-300"
+          >
+            <MessageCircle className="mr-2 inline h-4 w-4" /> Hablar con Libertad
+          </motion.a>
         </div>
 
         {/* Gold Feature Bar — Pre-footer element */}
