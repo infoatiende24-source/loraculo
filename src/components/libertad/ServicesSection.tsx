@@ -9,6 +9,7 @@ interface ServiceCard {
   image: string;
   description: string;
   buttonText: string;
+  whatsappMessage: string;
 }
 
 const services: ServiceCard[] = [
@@ -18,6 +19,7 @@ const services: ServiceCard[] = [
     description:
       "Una única pregunta al tarot para recibir claridad inmediata. Las cartas revelan lo que necesitas saber en este momento de tu vida.\n\nTambién disponible consulta completa de 30 minutos para una lectura más profunda y detallada.",
     buttonText: "DESDE 10€",
+    whatsappMessage: "Hola Libertad, me gustaría reservar una pregunta de tarot ✨",
   },
   {
     title: "SANACIÓN ENERGÉTICA",
@@ -25,6 +27,7 @@ const services: ServiceCard[] = [
     description:
       "Sanación profunda mediante péndulo hebreo. Libera bloqueos energéticos, restaura el equilibrio de tu campo áurico y reconecta con tu esencia más pura.\n\nUna experiencia transformadora que trabaja a nivel físico, emocional y espiritual.",
     buttonText: "DESDE 80€",
+    whatsappMessage: "Hola Libertad, me gustaría recibir información sobre la sanación energética ✨",
   },
   {
     title: "DESHIELO\n4 SESIONES",
@@ -32,6 +35,7 @@ const services: ServiceCard[] = [
     description:
       "Proceso individual de transformación profunda en 4 sesiones. Trabaja las capas de hielo emocional que te bloquean y liberan tu verdadera esencia.\n\nUn viaje guiado de sanación y liberación personal con acompañamiento constante de Libertad.",
     buttonText: "280€ / 4 SESIONES",
+    whatsappMessage: "Hola Libertad, me interesa el proceso de Deshielo de 4 sesiones ✨",
   },
   {
     title: "RITUAL CON VELA\nPERSONALIZADO",
@@ -39,6 +43,7 @@ const services: ServiceCard[] = [
     description:
       "Ritual con vela personalizado para crear una conexión energética y espiritual única. Cada vela se prepara específicamente para tu intención y necesidad.\n\nIdeal para activar la energía del amor, la protección, la abundancia o la sanación.",
     buttonText: "20€",
+    whatsappMessage: "Hola Libertad, me gustaría pedir un ritual con vela personalizado ✨",
   },
 ];
 
@@ -122,7 +127,10 @@ function ServiceCardComponent({
                     <p className="text-[#E5E5E5] text-xs sm:text-sm text-center leading-relaxed mb-5 whitespace-pre-line">
                       {service.description}
                     </p>
-                    <motion.button
+                    <motion.a
+                      href={`https://wa.me/34634451693?text=${encodeURIComponent(service.whatsappMessage)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       animate={{ y: [0, -5, 0] }}
                       transition={{
                         duration: 2,
@@ -137,7 +145,7 @@ function ServiceCardComponent({
                       onClick={(e) => e.stopPropagation()}
                     >
                       {service.buttonText}
-                    </motion.button>
+                    </motion.a>
                   </div>
                 </motion.div>
               )}
@@ -180,7 +188,7 @@ export default function ServicesSection() {
               {"\n"}
               {"No son solo respuestas… son decisiones tomadas con conciencia."}
               {"\n"}
-              {"Con el Oráculo de Libertad, una inteligencia espiritual entrenada por Libertad Molina, puedes acceder a guía inmediata, profunda y personalizada cuando lo necesites."}
+              {"El Oráculo puede abrir una primera mirada. Si necesitas ir más allá, Libertad te acompaña personalmente en el proceso que elijas."}
             </p>
           </div>
         </motion.div>
