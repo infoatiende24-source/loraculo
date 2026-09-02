@@ -349,6 +349,7 @@ export default function OracleSection() {
   const [mounted, setMounted] = useState(false);
   const [adminMode, setAdminModeState] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [oracleEntered, setOracleEntered] = useState(false);
   const [ritualStarted, setRitualStarted] = useState(false);
   const [ritualPath, setRitualPath] = useState<string | null>(null);
 
@@ -560,7 +561,73 @@ export default function OracleSection() {
             }}
           >
             <div className="bg-[#0A0A0A] rounded-2xl p-4 sm:p-6 md:p-8">
-              {!ritualStarted ? (
+              {!oracleEntered ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.8 }}
+                  className="relative isolate min-h-[390px] overflow-hidden rounded-xl border border-[#D4AF37]/25 bg-[#080707] px-5 py-10 sm:min-h-[440px] sm:px-10 sm:py-14"
+                >
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_10%,rgba(232,212,139,0.16),transparent_30%),radial-gradient(ellipse_at_50%_72%,rgba(233,88,114,0.12),transparent_45%)]" />
+                  <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(232,212,139,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(232,212,139,0.04)_1px,transparent_1px)] [background-size:44px_44px]" />
+                  {[0, 1, 2, 3, 4, 5].map((star) => (
+                    <motion.span
+                      key={star}
+                      aria-hidden="true"
+                      className="absolute h-1 w-1 rounded-full bg-[#F8EAB0]"
+                      style={{ left: `${12 + star * 16}%`, top: `${18 + (star % 3) * 24}%` }}
+                      animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.8, 0.8] }}
+                      transition={{ duration: 2.4 + star * 0.25, repeat: Infinity, delay: star * 0.3 }}
+                    />
+                  ))}
+                  <div className="relative mx-auto flex max-w-xl flex-col items-center text-center">
+                    <motion.div
+                      initial={{ scale: 0.6, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ duration: 1.1, ease: "easeOut" }}
+                      className="mb-7 flex h-16 w-16 items-center justify-center rounded-full border border-[#E8D48B]/50 bg-black/30 shadow-[0_0_55px_rgba(212,175,55,0.2)]"
+                    >
+                      <Sparkles className="h-7 w-7 text-[#E8D48B]" strokeWidth={1.2} />
+                    </motion.div>
+                    <motion.p
+                      initial={{ y: 12, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.35, duration: 0.7 }}
+                      className="font-[var(--font-cinzel)] text-[10px] tracking-[0.34em] text-[#D4AF37] uppercase"
+                    >
+                      El Oráculo de Libertad
+                    </motion.p>
+                    <motion.h3
+                      initial={{ y: 18, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.55, duration: 0.8 }}
+                      className="mt-5 font-[var(--font-playfair)] text-3xl leading-tight text-[#F7F0E2] sm:text-4xl"
+                    >
+                      Antes de preguntar,<br />detente un instante.
+                    </motion.h3>
+                    <motion.p
+                      initial={{ y: 14, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.8, duration: 0.8 }}
+                      className="mt-5 max-w-md text-sm leading-relaxed text-[#B8B1A7] sm:text-base"
+                    >
+                      Respira. No has llegado aquí para escuchar más ruido, sino para recordar aquello que dentro de ti ya sabe.
+                    </motion.p>
+                    <motion.button
+                      initial={{ y: 14, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 1.1, duration: 0.7 }}
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setOracleEntered(true)}
+                      className="mt-9 rounded-full border border-[#E8D48B]/70 bg-gradient-to-r from-[#E8D48B] via-[#D4AF37] to-[#C9A84C] px-7 py-3.5 font-[var(--font-cinzel)] text-xs tracking-[0.15em] text-black uppercase shadow-[0_0_35px_rgba(212,175,55,0.22)]"
+                    >
+                      Entrar al ritual
+                    </motion.button>
+                    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 0.7 }} transition={{ delay: 1.35, duration: 0.7 }} className="mt-4 text-[10px] tracking-[0.16em] text-[#9C9184] uppercase">Una lectura gratuita · Sin prisas</motion.p>
+                  </div>
+                </motion.div>
+              ) : !ritualStarted ? (
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
