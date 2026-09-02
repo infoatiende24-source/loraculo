@@ -58,7 +58,7 @@ export default function HeroSection() {
         >
           <Sparkles className="h-4 w-4 text-[#D4AF37]" />
           <span className="font-[var(--font-cinzel)] text-[10px] sm:text-xs tracking-[0.22em] gold-text-animated">
-            MENTORA ESPIRITUAL · TAROT · SANACIÓN
+            UN ESPACIO PARA VOLVER A TI
           </span>
         </motion.div>
 
@@ -69,10 +69,10 @@ export default function HeroSection() {
           className="font-[var(--font-cinzel)] text-[1.75rem] sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.05] tracking-[0.04em] uppercase mb-5"
         >
           <span className="block gold-text-animated drop-shadow-[0_2px_15px_rgba(0,0,0,0.8)]">
-            No has llegado aquí
+            Hay algo en ti
           </span>
           <span className="block mt-1 silver-text-animated drop-shadow-[0_2px_15px_rgba(0,0,0,0.8)]">
-            por casualidad
+            pidiendo ser escuchado
           </span>
         </motion.h1>
 
@@ -89,7 +89,7 @@ export default function HeroSection() {
             backgroundClip: "text",
           }}
         >
-          Tarot · Sanación · Oráculos · Transformación
+          Tarot · Sanación · Guía espiritual
         </motion.p>
 
         <motion.p
@@ -98,9 +98,8 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 1.0 }}
           className="silver-text-animated mx-auto mb-10 max-w-3xl text-[11px] sm:text-xs md:text-sm lg:text-base leading-relaxed drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)] px-2"
         >
-          Lecturas personalizadas y profundas generadas por una Inteligencia
-          Espiritual entrenada directamente por Libertad Molina.
-          Descubre lo que el universo tiene para ti.
+          A veces no necesitas más ruido ni más opiniones. Necesitas un lugar
+          seguro desde el que mirar aquello que tu alma ya sabe.
         </motion.p>
 
         <motion.div
@@ -113,10 +112,10 @@ export default function HeroSection() {
             onClick={() => scrollToSection("#oraculo")}
             className="rounded-full bg-gradient-to-r from-[#e95872] via-[#d64f69] to-[#f27d8a] px-6 sm:px-8 py-3 sm:py-3.5 font-[var(--font-cinzel)] text-[11px] sm:text-sm font-bold tracking-[0.1em] text-white shadow-[0_0_28px_rgba(233,88,114,0.35)] transition-all duration-300 hover:scale-105 hover:shadow-[0_0_38px_rgba(233,88,114,0.55)]"
           >
-            ✦ Consulta tu oráculo ahora
+            ✦ Abrir mi espacio de claridad
           </button>
           <p className="silver-text-animated font-[var(--font-playfair)] text-sm sm:text-base md:text-lg lg:text-xl mt-1 drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)]">
-            La magia de los oráculos, potenciada al siguiente nivel.
+            Una primera lectura gratuita para empezar a comprender.
           </p>
         </motion.div>
       </div>
