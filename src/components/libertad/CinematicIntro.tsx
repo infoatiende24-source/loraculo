@@ -2,78 +2,109 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const particles = [
-  [12, 21, 1], [19, 68, 0.7], [28, 38, 0.8], [36, 79, 0.55], [44, 16, 0.7],
-  [52, 65, 0.65], [61, 31, 0.85], [69, 75, 0.55], [78, 20, 0.8], [88, 55, 0.7],
-  [94, 32, 0.5], [7, 51, 0.65], [31, 11, 0.55], [73, 91, 0.6],
+const sparks = [
+  [10, 24], [18, 71], [25, 41], [33, 18], [40, 76], [49, 28], [58, 66],
+  [67, 19], [74, 49], [83, 73], [91, 33], [6, 52], [96, 58],
 ];
 
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 
 export default function CinematicIntro() {
-  const sectionRef = useRef<HTMLElement>(null);
   const [progress, setProgress] = useState(0);
+  const [active, setActive] = useState(true);
+  const touchY = useRef<number | null>(null);
+  const closing = progress >= 0.98;
 
   useEffect(() => {
-    let request = 0;
-    const update = () => {
-      cancelAnimationFrame(request);
-      request = requestAnimationFrame(() => {
-        const section = sectionRef.current;
-        if (!section) return;
-        const scrollLength = section.offsetHeight - window.innerHeight;
-        setProgress(clamp((window.scrollY - section.offsetTop) / Math.max(1, scrollLength)));
+    if (!active) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [active]);
+
+  useEffect(() => {
+    if (!active) return;
+    let unlockTimer: number | undefined;
+    const advance = (amount: number) => {
+      setProgress((current) => {
+        const next = clamp(current + amount);
+        if (next >= 1 && unlockTimer === undefined) {
+          unlockTimer = window.setTimeout(() => setActive(false), 550);
+        }
+        return next;
       });
     };
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    return () => {
-      cancelAnimationFrame(request);
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
+    const wheel = (event: WheelEvent) => {
+      event.preventDefault();
+      advance(event.deltaY / 950);
     };
-  }, []);
+    const touchStart = (event: TouchEvent) => {
+      touchY.current = event.touches[0]?.clientY ?? null;
+    };
+    const touchMove = (event: TouchEvent) => {
+      const currentY = event.touches[0]?.clientY;
+      if (touchY.current === null || currentY === undefined) return;
+      const delta = touchY.current - currentY;
+      if (Math.abs(delta) > 2) {
+        event.preventDefault();
+        advance(delta / 560);
+        touchY.current = currentY;
+      }
+    };
+    window.addEventListener("wheel", wheel, { passive: false });
+    window.addEventListener("touchstart", touchStart, { passive: true });
+    window.addEventListener("touchmove", touchMove, { passive: false });
+    return () => {
+      if (unlockTimer) window.clearTimeout(unlockTimer);
+      window.removeEventListener("wheel", wheel);
+      window.removeEventListener("touchstart", touchStart);
+      window.removeEventListener("touchmove", touchMove);
+    };
+  }, [active]);
 
-  const signal = clamp((progress - 0.08) / 0.22);
-  const portal = clamp((progress - 0.2) / 0.38);
-  const reveal = clamp((progress - 0.48) / 0.38);
-  const phraseOpacity = clamp(1 - progress * 3.8);
-  const invitationOpacity = clamp((progress - 0.48) * 5) * clamp((0.88 - progress) * 8);
+  if (!active) return null;
+
+  const signal = clamp((progress - 0.08) / 0.24);
+  const portal = clamp((progress - 0.26) / 0.45);
+  const reveal = clamp((progress - 0.68) / 0.27);
+  const phraseOpacity = clamp(1 - progress * 3.2);
+  const promptOpacity = clamp(1 - progress * 4);
 
   return (
-    <section ref={sectionRef} className="relative h-[165svh] bg-[#020202]" aria-label="Introducción cinematográfica de Libertad Molina">
-      <div className="sticky top-0 z-[60] h-[100svh] overflow-hidden bg-[#020202]">
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/hero_l.jpg')", opacity: reveal, transform: `scale(${1.08 - reveal * 0.05})`, transition: "opacity 80ms linear, transform 80ms linear" }} aria-hidden="true" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_8%,rgba(0,0,0,0.66)_56%,#020202_100%)]" style={{ opacity: 1 - reveal * 0.72 }} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/55" style={{ opacity: reveal }} />
+    <div className="fixed inset-0 z-[100] overflow-hidden bg-[#020202]" aria-label="Apertura de Libertad Molina">
+      <div className="absolute inset-0 bg-cover bg-[position:50%_30%] sm:bg-center" style={{ backgroundImage: "url('/hero_l.jpg')", opacity: reveal, transform: `scale(${1.14 - reveal * 0.14})`, transition: "opacity 120ms linear, transform 120ms linear" }} />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_12%,rgba(0,0,0,0.78)_70%,#020202_100%)]" style={{ opacity: 1 - reveal * 0.76 }} />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/55" style={{ opacity: reveal }} />
 
-        <div className="absolute inset-0" style={{ opacity: signal }}>
-          {particles.map(([left, top, size], index) => <span key={index} className="absolute rounded-full bg-[#f5dc8a] shadow-[0_0_10px_rgba(243,203,95,0.9)]" style={{ left: `${left}%`, top: `${top}%`, width: `${size * 3}px`, height: `${size * 3}px`, opacity: 0.3 + ((index % 4) / 7) * signal, transform: `translateY(${(1 - signal) * (index % 3) * 18}px) scale(${0.7 + signal * 0.3})` }} />)}
-        </div>
-
-        <div className="absolute left-1/2 top-1/2 h-[88vmin] w-[88vmin] -translate-x-1/2 -translate-y-1/2">
-          <div className="absolute inset-[8%] rounded-full border border-[#f5dc8a]/75 shadow-[0_0_24px_6px_rgba(232,183,69,0.2)]" style={{ opacity: portal, transform: `scale(${0.16 + portal * 0.84}) rotate(${portal * 35}deg)` }} />
-          <div className="absolute inset-[18%] rounded-full border border-[#d79b3d]/75" style={{ opacity: portal * 0.88, transform: `scale(${0.1 + portal * 0.9}) rotate(${-portal * 54}deg)` }} />
-          <div className="absolute inset-[29%] rounded-full border border-[#f6e5a8]/65" style={{ opacity: portal * 0.75, transform: `scale(${0.06 + portal * 0.94}) rotate(${portal * 82}deg)` }} />
-          <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(255,238,166,0.8)_0%,rgba(222,160,51,0.3)_16%,rgba(188,93,111,0.08)_38%,transparent_68%)]" style={{ opacity: portal * 0.9, transform: `scale(${0.1 + portal * 0.92})` }} />
-        </div>
-
-        <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-center" style={{ opacity: phraseOpacity }}>
-          <p className="font-[var(--font-playfair)] text-3xl italic text-[#f6ede0] sm:text-5xl">No has llegado aquí<br />por casualidad.</p>
-          <div className="mx-auto mt-7 h-px w-14 bg-gradient-to-r from-transparent via-[#e8c96e] to-transparent" />
-        </div>
-
-        <div className="absolute bottom-20 left-1/2 z-10 w-full -translate-x-1/2 px-6 text-center" style={{ opacity: invitationOpacity }}>
-          <p className="font-[var(--font-cinzel)] text-[10px] tracking-[0.42em] text-[#f2d985] uppercase">Libertad Molina</p>
-          <h1 className="mt-4 font-[var(--font-playfair)] text-4xl text-[#fff6e4] sm:text-6xl">Vuelve a lo que ya sabes.</h1>
-        </div>
-
-        <div className="absolute bottom-8 left-1/2 z-20 -translate-x-1/2 text-center" style={{ opacity: clamp(1 - progress * 5) }}>
-          <p className="font-[var(--font-cinzel)] text-[9px] tracking-[0.29em] text-[#f2d985] uppercase">Desliza para abrir</p>
-          <span className="mx-auto mt-3 block h-8 w-px animate-pulse bg-gradient-to-b from-[#f2d985] to-transparent" />
-        </div>
+      <div className="absolute inset-0" style={{ opacity: signal }}>
+        {sparks.map(([left, top], index) => <i key={index} className="absolute h-1 w-1 rounded-full bg-[#f6dc8a] shadow-[0_0_10px_rgba(244,201,90,0.95)]" style={{ left: `${left}%`, top: `${top}%`, opacity: 0.35 + (index % 3) * 0.18, transform: `scale(${0.5 + signal * 0.8})` }} />)}
       </div>
-    </section>
+
+      <div className="absolute left-1/2 top-1/2 h-[110vmin] w-[110vmin] -translate-x-1/2 -translate-y-1/2">
+        <div className="absolute inset-[6%] rounded-full border border-[#f4d982]/80 shadow-[0_0_32px_8px_rgba(228,177,55,0.18)]" style={{ opacity: portal, transform: `scale(${0.06 + portal * 0.94}) rotate(${portal * 45}deg)` }} />
+        <div className="absolute inset-[18%] rounded-full border border-[#d9a649]/75" style={{ opacity: portal * 0.9, transform: `scale(${0.04 + portal * 0.96}) rotate(${-portal * 62}deg)` }} />
+        <div className="absolute inset-[30%] rounded-full border border-[#fff0b5]/55" style={{ opacity: portal * 0.72, transform: `scale(${0.02 + portal * 0.98}) rotate(${portal * 80}deg)` }} />
+        <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(255,244,184,0.95)_0%,rgba(231,184,65,0.38)_15%,rgba(191,99,117,0.12)_33%,transparent_66%)]" style={{ opacity: portal * 0.86, transform: `scale(${0.08 + portal * 0.96})` }} />
+      </div>
+
+      <div className="absolute left-1/2 top-1/2 z-10 w-full -translate-x-1/2 -translate-y-1/2 px-8 text-center" style={{ opacity: phraseOpacity }}>
+        <p className="font-[var(--font-playfair)] text-3xl italic leading-tight text-[#f8eee0] sm:text-5xl">Hay respuestas que nacen<br />en silencio.</p>
+        <div className="mx-auto mt-7 h-px w-16 bg-gradient-to-r from-transparent via-[#eed47b] to-transparent" />
+      </div>
+
+      <div className="absolute bottom-12 left-1/2 z-20 w-full -translate-x-1/2 px-6 text-center" style={{ opacity: reveal * clamp((0.96 - progress) * 18) }}>
+        <p className="font-[var(--font-cinzel)] text-[10px] tracking-[0.42em] text-[#f2d883] uppercase">Libertad Molina</p>
+        <h1 className="mt-4 font-[var(--font-playfair)] text-4xl text-[#fff5e0] sm:text-6xl">Vuelve a ti.</h1>
+      </div>
+
+      <div className="absolute bottom-8 left-1/2 z-20 -translate-x-1/2 text-center" style={{ opacity: promptOpacity }}>
+        <p className="font-[var(--font-cinzel)] text-[9px] tracking-[0.3em] text-[#f0d583] uppercase">Desliza para abrir</p>
+        <span className="mx-auto mt-3 block h-8 w-px animate-pulse bg-gradient-to-b from-[#f0d583] to-transparent" />
+      </div>
+
+      <div className="absolute inset-0 bg-black" style={{ opacity: closing ? (progress - 0.98) * 50 : 0, transition: "opacity 120ms linear" }} />
+    </div>
   );
 }
