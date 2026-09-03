@@ -35,15 +35,15 @@ export default function CinematicIntro() {
     };
   }, []);
 
-  const signal = clamp((progress - 0.1) / 0.25);
-  const portal = clamp((progress - 0.3) / 0.36);
-  const reveal = clamp((progress - 0.57) / 0.32);
-  const phraseOpacity = clamp(1 - progress * 3.1);
-  const invitationOpacity = clamp((progress - 0.38) * 5) * clamp((0.9 - progress) * 7);
+  const signal = clamp((progress - 0.08) / 0.22);
+  const portal = clamp((progress - 0.2) / 0.38);
+  const reveal = clamp((progress - 0.48) / 0.38);
+  const phraseOpacity = clamp(1 - progress * 3.8);
+  const invitationOpacity = clamp((progress - 0.48) * 5) * clamp((0.88 - progress) * 8);
 
   return (
-    <section ref={sectionRef} className="relative h-[255svh] bg-[#020202]" aria-label="Introducción cinematográfica de Libertad Molina">
-      <div className="sticky top-0 h-[100svh] overflow-hidden bg-[#020202]">
+    <section ref={sectionRef} className="relative h-[165svh] bg-[#020202]" aria-label="Introducción cinematográfica de Libertad Molina">
+      <div className="sticky top-0 z-[60] h-[100svh] overflow-hidden bg-[#020202]">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/hero_l.jpg')", opacity: reveal, transform: `scale(${1.08 - reveal * 0.05})`, transition: "opacity 80ms linear, transform 80ms linear" }} aria-hidden="true" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_8%,rgba(0,0,0,0.66)_56%,#020202_100%)]" style={{ opacity: 1 - reveal * 0.72 }} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/55" style={{ opacity: reveal }} />
@@ -64,7 +64,7 @@ export default function CinematicIntro() {
           <div className="mx-auto mt-7 h-px w-14 bg-gradient-to-r from-transparent via-[#e8c96e] to-transparent" />
         </div>
 
-        <div className="absolute bottom-14 left-1/2 z-10 w-full -translate-x-1/2 px-6 text-center" style={{ opacity: invitationOpacity }}>
+        <div className="absolute bottom-20 left-1/2 z-10 w-full -translate-x-1/2 px-6 text-center" style={{ opacity: invitationOpacity }}>
           <p className="font-[var(--font-cinzel)] text-[10px] tracking-[0.42em] text-[#f2d985] uppercase">Libertad Molina</p>
           <h1 className="mt-4 font-[var(--font-playfair)] text-4xl text-[#fff6e4] sm:text-6xl">Vuelve a lo que ya sabes.</h1>
         </div>
