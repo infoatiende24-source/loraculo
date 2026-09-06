@@ -12,6 +12,7 @@ const clamp = (value: number) => Math.max(0, Math.min(1, value));
 export default function CinematicIntro() {
   const [progress, setProgress] = useState(0);
   const [active, setActive] = useState(true);
+  const [closing, setClosing] = useState(false);
   const touchY = useRef<number | null>(null);
   const hasLeftTop = useRef(false);
 
@@ -54,7 +55,12 @@ export default function CinematicIntro() {
       setProgress((current) => {
         const next = clamp(current + amount);
         if (next >= 1 && unlockTimer === undefined) {
-          unlockTimer = window.setTimeout(() => setActive(false), 900);
+          setClosing(true);
+          window.setTimeout(() => window.dispatchEvent(new Event("libertad:hero-reveal")), 180);
+          unlockTimer = window.setTimeout(() => {
+            setActive(false);
+            setClosing(false);
+          }, 1050);
         }
         return next;
       });
@@ -103,7 +109,11 @@ export default function CinematicIntro() {
   const smooth = "opacity 420ms cubic-bezier(0.22, 1, 0.36, 1), transform 620ms cubic-bezier(0.22, 1, 0.36, 1)";
 
   return (
-    <div className="fixed inset-0 z-[100] overflow-hidden bg-[#020202]" aria-label="Apertura de Libertad Molina">
+    <div
+      className="fixed inset-0 z-[100] overflow-hidden bg-[#020202]"
+      aria-label="Apertura de Libertad Molina"
+      style={{ opacity: closing ? 0 : 1, transition: "opacity 1050ms cubic-bezier(0.22, 1, 0.36, 1)" }}
+    >
       <div className="absolute inset-0 bg-cover bg-[position:50%_30%] sm:bg-center" style={{ backgroundImage: "url('/hero_l.jpg')", opacity: reveal, transform: `scale(${1.1 - reveal * 0.1})`, transition: smooth }} />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_12%,rgba(0,0,0,0.78)_70%,#020202_100%)]" style={{ opacity: 1 - reveal * 0.76, transition: smooth }} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/55" style={{ opacity: reveal, transition: smooth }} />
