@@ -35,7 +35,8 @@ export default function CinematicIntro() {
 
       if (hasLeftTop.current && window.scrollY < 24) {
         hasLeftTop.current = false;
-        setProgress(0);
+        // Volvemos al último frame: el siguiente gesto hacia arriba desanda el ritual.
+        setProgress(1);
         setActive(true);
       }
     };
