@@ -22,19 +22,19 @@ export default function HeroSection() {
     <section id="inicio" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       <motion.div
         initial={{ scale: 1.0 }}
-        animate={{ scale: 1.15 }}
+        animate={{ scale: revealed ? 1.15 : 1.0 }}
         transition={{ duration: 20, ease: "linear" }}
         className="absolute inset-0 z-0"
       >
-        <div className="absolute inset-0 bg-cover bg-center will-change-transform" style={{ backgroundImage: "url('/hero_l.jpg')" }} />
+        <div className="libertad-hero-media absolute inset-0 will-change-transform" />
       </motion.div>
 
       <motion.div
-        animate={{ x: [0, 3, 0, -3, 0], y: [0, -2, 0, 2, 0] }}
+        animate={revealed ? { x: [0, 3, 0, -3, 0], y: [0, -2, 0, 2, 0] } : { x: 0, y: 0 }}
         transition={{ duration: 40, repeat: Infinity, ease: "easeInOut" }}
         className="absolute inset-0 z-[1]"
       >
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/hero_l.jpg')" }} />
+        <div className="libertad-hero-media absolute inset-0" />
       </motion.div>
 
       <div className="absolute inset-0 z-[2] bg-gradient-to-t from-black/80 via-black/20 to-transparent" />

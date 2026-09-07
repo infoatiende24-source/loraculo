@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { Star, Send, Crown, Lock, Sparkles, Heart, Compass, Moon, MessageCircle } from "lucide-react";
+import { findTarotCard } from "@/lib/tarot-deck";
 
 /* ── Admin mode ── */
 const ADMIN_PASSWORD = "libertad2024admin";
@@ -523,6 +525,8 @@ export default function OracleSection() {
 
   if (!mounted) return null;
 
+  const tarotCard = activeTab === "tarot" && result ? findTarotCard(result) : null;
+
   return (
     <section id="oraculo" className="relative py-20 md:py-32 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
@@ -879,9 +883,28 @@ export default function OracleSection() {
                             transition={{ duration: 0.5 }}
                           >
                             {/* Main result card */}
-                            <div className="bg-[#121212]/80 border border-[#D4AF37]/15 rounded-xl p-6">
-                              <div className="whitespace-pre-line text-[#CCCCCC] leading-relaxed text-sm md:text-base">
-                                {result}
+                            <div className="bg-[#121212]/80 border border-[#D4AF37]/15 rounded-xl p-4 sm:p-6">
+                              <div className={tarotCard ? "grid items-start gap-6 md:grid-cols-[220px_minmax(0,1fr)]" : undefined}>
+                                {tarotCard && (
+                                  <motion.figure
+                                    initial={{ opacity: 0, rotateY: 12, scale: 0.94 }}
+                                    animate={{ opacity: 1, rotateY: 0, scale: 1 }}
+                                    transition={{ duration: 0.65, ease: "easeOut" }}
+                                    className="mx-auto w-full max-w-[220px] overflow-hidden rounded-[18px] border border-[#D4AF37]/35 bg-white shadow-[0_18px_55px_rgba(0,0,0,0.5),0_0_28px_rgba(212,175,55,0.13)]"
+                                  >
+                                    <Image
+                                      src={tarotCard.image}
+                                      alt={`Tarot del Aprendiz — ${tarotCard.name}`}
+                                      width={695}
+                                      height={1200}
+                                      sizes="(max-width: 767px) 220px, 220px"
+                                      className="h-auto w-full"
+                                    />
+                                  </motion.figure>
+                                )}
+                                <div className="whitespace-pre-line text-[#CCCCCC] leading-relaxed text-sm md:text-base">
+                                  {result}
+                                </div>
                               </div>
                             </div>
 

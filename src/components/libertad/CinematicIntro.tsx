@@ -114,7 +114,7 @@ export default function CinematicIntro() {
       aria-label="Apertura de Libertad Molina"
       style={{ opacity: closing ? 0 : 1, transition: "opacity 1050ms cubic-bezier(0.22, 1, 0.36, 1)" }}
     >
-      <div className="absolute inset-0 bg-cover bg-[position:50%_30%] sm:bg-center" style={{ backgroundImage: "url('/hero_l.jpg')", opacity: reveal, transform: `scale(${1.1 - reveal * 0.1})`, transition: smooth }} />
+      <div className="libertad-hero-media absolute inset-0" style={{ opacity: reveal, transform: `scale(${1.1 - reveal * 0.1})`, transition: smooth }} />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_12%,rgba(0,0,0,0.78)_70%,#020202_100%)]" style={{ opacity: 1 - reveal * 0.76, transition: smooth }} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/55" style={{ opacity: reveal, transition: smooth }} />
 

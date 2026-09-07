@@ -197,6 +197,21 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Shared crop for the final portal frame and the hero beneath it. Keeping
+   this in one class prevents Libertad from jumping during the cross-fade. */
+.libertad-hero-media {
+  background-image: url("/hero_l.jpg");
+  background-position: 50% 30%;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+@media (min-width: 640px) {
+  .libertad-hero-media {
+    background-position: 50% 50%;
+  }
+}
+
 /* ===== Custom Scrollbar ===== */
 ::-webkit-scrollbar {
   width: 6px;
