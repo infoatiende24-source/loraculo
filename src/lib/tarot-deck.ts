@@ -81,12 +81,31 @@ const normalize = (value: string) =>
     .toLowerCase();
 
 export const findTarotCard = (reading: string): TarotCard | null => {
-  const firstLine = normalize(reading.split("\n")[0] || reading.slice(0, 140));
+  // Follow-up readings do not always put the card on the very first line.
+  // Search the opening of the answer so headings and short introductions do
+  // not prevent the corresponding Tarot del Aprendiz image from appearing.
+  const opening = normalize(
+    reading
+      .split("\n")
+      .filter((line) => line.trim())
+      .slice(0, 6)
+      .join(" ")
+      .slice(0, 700),
+  );
+
+  // Prefer longer names first (for example, "La Rueda de la Fortuna"
+  // before its shorter alias "La Rueda").
+  const cardsBySpecificity = [...tarotDeck].sort((a, b) => {
+    const longestName = (card: TarotCard) =>
+      Math.max(...[card.name, ...(card.aliases ?? [])].map((name) => name.length));
+
+    return longestName(b) - longestName(a);
+  });
 
   return (
-    tarotDeck.find((card) =>
+    cardsBySpecificity.find((card) =>
       [card.name, ...(card.aliases ?? [])].some((name) =>
-        firstLine.includes(normalize(name)),
+        opening.includes(normalize(name)),
       ),
     ) ?? null
   );
