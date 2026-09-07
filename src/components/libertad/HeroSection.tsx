@@ -20,19 +20,24 @@ export default function HeroSection() {
 
   return (
     <section id="inicio" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* On phones the hand-off must remain pixel-perfect. The cinematic
+          movement is reserved for larger screens so the mobile browser's
+          changing viewport cannot reveal a shifted background frame. */}
+      <div className="libertad-hero-media absolute inset-0 z-0 sm:hidden" />
+
       <motion.div
         initial={{ scale: 1.0 }}
         animate={{ scale: revealed ? 1.15 : 1.0 }}
-        transition={{ duration: 20, ease: "linear" }}
-        className="absolute inset-0 z-0"
+        transition={{ duration: 20, delay: revealed ? 1.05 : 0, ease: "linear" }}
+        className="absolute inset-0 z-0 hidden sm:block"
       >
         <div className="libertad-hero-media absolute inset-0 will-change-transform" />
       </motion.div>
 
       <motion.div
         animate={revealed ? { x: [0, 3, 0, -3, 0], y: [0, -2, 0, 2, 0] } : { x: 0, y: 0 }}
-        transition={{ duration: 40, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute inset-0 z-[1]"
+        transition={{ duration: 40, delay: revealed ? 1.05 : 0, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute inset-0 z-[1] hidden sm:block"
       >
         <div className="libertad-hero-media absolute inset-0" />
       </motion.div>
