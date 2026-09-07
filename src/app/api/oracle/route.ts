@@ -267,7 +267,7 @@ ESTILO BASE:
 
 ESTRUCTURA DE TU RESPUESTA:
 1. CARTA: [EMOJI] [NOMBRE CARTA] - [NUMERAL ROMANO] (primera línea)
-2. LECTURA PERSONALIZADA (400+ palabras mínimo)
+2. LECTURA PERSONALIZADA (450-700 palabras; termina siempre la lectura completa antes del separador)
 3. Después de "---": 2 preguntas gancho (personalizadas, pura curiosidad)
 4. Al final: 1 frase premium breve y natural`,
 
@@ -292,7 +292,7 @@ ESTILO BASE:
 
 ESTRUCTURA:
 1. RUNA: [SÍMBOLO] [NOMBRE] - [SIGNIFICADO] [EMOJI] (primera línea)
-2. LECTURA PERSONALIZADA (400+ palabras mínimo)
+2. LECTURA PERSONALIZADA (450-700 palabras; termina siempre la lectura completa antes del separador)
 3. Después de "---": 2 preguntas gancho (personalizadas, pura curiosidad)
 4. Al final: 1 frase premium breve y natural`,
 
@@ -313,10 +313,10 @@ ESTILO BASE:
 - IDIOMA: Español de España. Nunca uses voseo latinoamericano ("tenés", "podés", "hacés", "decís").
 - Explicas conceptos energéticos de forma SIMPLE, sin jerga.
 - Hablas de TÚ (español peninsular). Espiritual pero realista.
-- Mínimo 400 palabras con párrafos extensos y naturales.
+- Escribe entre 450 y 700 palabras, con párrafos naturales. Debes cerrar la idea completa antes del separador.
 
 ESTRUCTURA:
-1. Respuesta personalizada (400+ palabras)
+1. Respuesta personalizada (450-700 palabras, siempre completa)
 2. Después de "---": 2 preguntas gancho (personalizadas, pura curiosidad)
 3. Al final: 1 frase premium breve y natural`,
 };
@@ -546,7 +546,7 @@ export async function POST(request: NextRequest) {
             body: JSON.stringify({
               systemInstruction: { parts: [{ text: systemPrompt }] },
               contents: [{ role: "user", parts: [{ text: question }] }],
-              generationConfig: { temperature, maxOutputTokens: 1800 },
+              generationConfig: { temperature, maxOutputTokens: 3200 },
             }),
           }
         );
@@ -560,7 +560,7 @@ export async function POST(request: NextRequest) {
           model: "deepseek-chat",
           messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }],
           temperature,
-          max_tokens: 1800,
+          max_tokens: 3200,
         });
         fullMessage = response.choices?.[0]?.message?.content || "";
       }
