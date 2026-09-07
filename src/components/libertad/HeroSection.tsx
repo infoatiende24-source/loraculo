@@ -19,7 +19,7 @@ export default function HeroSection() {
   };
 
   return (
-    <section id="inicio" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section id="inicio" className="libertad-viewport relative flex items-center justify-center overflow-hidden">
       {/* On phones the hand-off must remain pixel-perfect. The cinematic
           movement is reserved for larger screens so the mobile browser's
           changing viewport cannot reveal a shifted background frame. */}

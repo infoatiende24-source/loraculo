@@ -206,6 +206,21 @@ html {
   background-size: cover;
 }
 
+/* Android browsers calculate legacy 100vh with the browser chrome included,
+   while fixed overlays use the visible viewport. Both cinematic frames must
+   share the same dynamic height for an identical background crop. */
+.libertad-viewport {
+  height: 100vh;
+  min-height: 100vh;
+}
+
+@supports (height: 100dvh) {
+  .libertad-viewport {
+    height: 100dvh;
+    min-height: 100dvh;
+  }
+}
+
 @media (min-width: 640px) {
   .libertad-hero-media {
     background-position: 50% 50%;

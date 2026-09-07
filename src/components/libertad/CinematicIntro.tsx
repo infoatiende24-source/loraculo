@@ -110,7 +110,7 @@ export default function CinematicIntro() {
 
   return (
     <div
-      className="fixed inset-0 z-[100] overflow-hidden bg-[#020202]"
+      className="libertad-viewport fixed inset-x-0 top-0 z-[100] overflow-hidden bg-[#020202]"
       aria-label="Apertura de Libertad Molina"
       style={{ opacity: closing ? 0 : 1, transition: "opacity 1050ms cubic-bezier(0.22, 1, 0.36, 1)" }}
     >
