@@ -592,35 +592,53 @@ export async function POST(request: NextRequest) {
       let fullMessage = "";
       const geminiKey = process.env.GEMINI_API_KEY;
 
-      if (geminiKey) {
-        const geminiResponse = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
-            // The oracle is a live conversation: never leave someone waiting for a
-            // slow provider. A quick, complete reading is preferable to a long hang.
-            signal: AbortSignal.timeout(16_000),
-            body: JSON.stringify({
-              systemInstruction: { parts: [{ text: systemPrompt }] },
-              contents: [{ role: "user", parts: [{ text: question }] }],
-              generationConfig: { temperature, maxOutputTokens: 1600 },
-            }),
-          }
-        );
-        if (!geminiResponse.ok) throw new Error(`Gemini respondió ${geminiResponse.status}`);
-        const geminiData = await geminiResponse.json();
-        fullMessage = geminiData.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || "").join("") || "";
-      } else {
+      const askDeepSeek = async (): Promise<string> => {
         const ZAI = (await import("z-ai-web-dev-sdk")).default;
         const zai = await ZAI.create();
         const response = await zai.chat.completions.create({
           model: "deepseek-chat",
           messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }],
           temperature,
-          max_tokens: 3200,
+          max_tokens: 1600,
         });
-        fullMessage = response.choices?.[0]?.message?.content || "";
+        const message = response.choices?.[0]?.message?.content || "";
+        if (!message) throw new Error("DeepSeek no devolvió lectura");
+        return message;
+      };
+
+      if (geminiKey) {
+        const askGemini = async (): Promise<string> => {
+          const geminiResponse = await fetch(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
+              signal: AbortSignal.timeout(16_000),
+              body: JSON.stringify({
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                contents: [{ role: "user", parts: [{ text: question }] }],
+                generationConfig: { temperature, maxOutputTokens: 1600 },
+              }),
+            }
+          );
+          if (!geminiResponse.ok) throw new Error(`Gemini respondió ${geminiResponse.status}`);
+          const geminiData = await geminiResponse.json();
+          const message = geminiData.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || "").join("") || "";
+          if (!message) throw new Error("Gemini no devolvió lectura");
+          return message;
+        };
+
+        // Gemini remains the preferred voice, but a complete response from the
+        // proven fast engine wins if Gemini is slow. The visitor never sees a
+        // generic timeout answer while a capable oracle is available.
+        fullMessage = await Promise.race([
+          Promise.any([askGemini(), askDeepSeek()]),
+          new Promise<string>((_, reject) => {
+            setTimeout(() => reject(new Error("Tiempo máximo de lectura agotado")), 18_000);
+          }),
+        ]);
+      } else {
+        fullMessage = await askDeepSeek();
       }
 
       if (!fullMessage) fullMessage = "Vaya, parece que ahora mismo no puedo conectar bien. Inténtalo de nuevo en un ratito, ¿vale?";
