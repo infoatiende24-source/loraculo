@@ -372,8 +372,22 @@ Responde a esa pregunta antes de abrir interpretaciones secundarias. No cambies 
 - Mantén una sola línea narrativa: origen, movimiento y clave práctica.`,
   };
 
-  return `${common}\n\n${guidance[intent]}\n\nFORMATO DE CALIDAD:
-La primera frase debe contener la respuesta esencial. Desarrolla después la lectura de manera completa y cohesionada. No contradigas esa primera respuesta ni abandones la lectura a mitad de una idea.`;
+  return `${common}\n\n${guidance[intent]}\n\nNÚCLEO ORACULAR — REGLA NO NEGOCIABLE:
+No hagas una explicación didáctica de la carta. La lectura debe interpretar la situación de la persona, no describir símbolos ni dar una ficha de significado.
+- Empieza con una respuesta directa y personalizada a la pregunta, en un máximo de dos frases.
+- Toda lectura incluye un movimiento predictivo: qué está madurando ahora, hacia dónde tiende en las próximas semanas y qué señal concreta podrá observar.
+- Habla de la carta o runa solo como apoyo breve dentro de la lectura (una vez); nunca la conviertas en el tema principal ni empieces con “la carta significa…”.
+- Dedica al menos tres cuartas partes del texto a la situación, la evolución y la clave de acción de la persona.
+- Si la pregunta es de vínculo, expresa las tendencias como lectura, no como hechos demostrables de una tercera persona.
+- No uses introducciones genéricas, definiciones de arcanos, listas de cualidades ni párrafos que puedan servir para cualquier consulta.
+
+ORDEN OBLIGATORIO ANTES DEL SEPARADOR:
+1. Respuesta esencial.
+2. Lo que se está moviendo ahora.
+3. Tendencia de las próximas semanas y señal observable.
+4. Clave concreta para que la persona se sitúe ante ese camino.
+
+Desarrolla una lectura completa, cohesionada y viva. No contradigas la primera respuesta ni abandones la lectura a mitad de una idea.`;
 }
 
 function buildSystemPrompt(
@@ -387,28 +401,17 @@ function buildSystemPrompt(
 ): string {
   const base = basePrompts[type] || basePrompts.chat;
 
-  // ── Select interpretation layer (avoid recent ones) ──
-  const layerKeys = Object.keys(interpretationLayers);
-  const availableLayers = layerKeys.filter((l) => !recentLayers.includes(l));
-  const selectedLayer = availableLayers.length > 0
-    ? availableLayers[Math.floor(Math.random() * availableLayers.length)]
-    : layerKeys[Math.floor(Math.random() * layerKeys.length)];
-
-  // ── Select narrative style (avoid recent ones) ──
-  const styleKeys = Object.keys(narrativeStyles);
-  const availableStyles = styleKeys.filter((s) => !recentStyles.includes(s));
-  const selectedStyle = availableStyles.length > 0
-    ? availableStyles[Math.floor(Math.random() * availableStyles.length)]
-    : styleKeys[Math.floor(Math.random() * styleKeys.length)];
-
+  // The response path is deliberately stable; question alignment matters more than random rotation.
   // ── Select depth level (random) ──
   const depthKeys = Object.keys(depthLevels);
   const selectedDepth = depthKeys[Math.floor(Math.random() * depthKeys.length)];
 
   // ── Build prompt ──
   let prompt = `${LIBERTAD_ORACLE_BRAIN}\n\n${base}`;
-  prompt += `\n\n${interpretationLayers[selectedLayer]}`;
-  prompt += `\n\n${narrativeStyles[selectedStyle]}`;
+  // La variedad no puede desplazar el núcleo de la pregunta. La voz se mantiene
+  // cálida y concreta, y el bloque final de intención guía cada lectura.
+  prompt += `\n\n${interpretationLayers.practica}`;
+  prompt += `\n\n${narrativeStyles.directo}`;
   prompt += `\n\n${depthLevels[selectedDepth]}`;
   prompt += buildAntiRepetitionBlock(recentPhrases, recentConclusions);
   prompt += buildQuestionAlignmentBlock(question);
