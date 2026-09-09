@@ -689,11 +689,11 @@ export async function POST(request: NextRequest) {
         conclusion,
       });
     } catch {
-      const { topic } = extractThemeKeywords(question);
+      const fallbackTopic = extractThemeKeywords(question).topic;
       return NextResponse.json({
-        message: `Ahora mismo la señal llega más despacio de lo debido y no quiero dejarte esperando. Sobre ${topic}, la tendencia pide observar el siguiente paso real antes de forzar una conclusión: mira qué conversación, propuesta o cambio concreto aparece en los próximos días y responde desde la calma, no desde la urgencia.`,
+        message: `Ahora mismo la señal llega más despacio de lo debido y no quiero dejarte esperando. Sobre ${fallbackTopic}, la tendencia pide observar el siguiente paso real antes de forzar una conclusión: mira qué conversación, propuesta o cambio concreto aparece en los próximos días y responde desde la calma, no desde la urgencia.`,
         suggestedQuestions: [
-          `¿Qué señal concreta debería observar primero sobre ${topic}?`,
+          `¿Qué señal concreta debería observar primero sobre ${fallbackTopic}?`,
           `¿Qué puedo hacer esta semana para acompañar esta tendencia?`,
         ],
         premiumSuggestion: "",
