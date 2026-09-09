@@ -25,21 +25,16 @@ export default function HeroSection() {
           changing viewport cannot reveal a shifted background frame. */}
       <div className="libertad-hero-media absolute inset-0 z-0 sm:hidden" />
 
+      {/* The background starts completely still at the hand-off. This makes the
+          last cinematic frame and the hero use the exact same crop, then the
+          subtle movement begins only after the text has settled. */}
       <motion.div
-        initial={{ scale: 1.0 }}
+        initial={false}
         animate={{ scale: revealed ? 1.15 : 1.0 }}
         transition={{ duration: 20, delay: revealed ? 1.05 : 0, ease: "linear" }}
         className="absolute inset-0 z-0 hidden sm:block"
       >
         <div className="libertad-hero-media absolute inset-0 will-change-transform" />
-      </motion.div>
-
-      <motion.div
-        animate={revealed ? { x: [0, 3, 0, -3, 0], y: [0, -2, 0, 2, 0] } : { x: 0, y: 0 }}
-        transition={{ duration: 40, delay: revealed ? 1.05 : 0, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute inset-0 z-[1] hidden sm:block"
-      >
-        <div className="libertad-hero-media absolute inset-0" />
       </motion.div>
 
       <div className="absolute inset-0 z-[2] bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
