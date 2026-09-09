@@ -598,10 +598,13 @@ export async function POST(request: NextRequest) {
           {
             method: "POST",
             headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
+            // The oracle is a live conversation: never leave someone waiting for a
+            // slow provider. A quick, complete reading is preferable to a long hang.
+            signal: AbortSignal.timeout(12_000),
             body: JSON.stringify({
               systemInstruction: { parts: [{ text: systemPrompt }] },
               contents: [{ role: "user", parts: [{ text: question }] }],
-              generationConfig: { temperature, maxOutputTokens: 3200 },
+              generationConfig: { temperature, maxOutputTokens: 1800 },
             }),
           }
         );
@@ -686,6 +689,16 @@ export async function POST(request: NextRequest) {
         conclusion,
       });
     } catch {
+      const { topic } = extractThemeKeywords(question);
+      return NextResponse.json({
+        message: `Ahora mismo la señal llega más despacio de lo debido y no quiero dejarte esperando. Sobre ${topic}, la tendencia pide observar el siguiente paso real antes de forzar una conclusión: mira qué conversación, propuesta o cambio concreto aparece en los próximos días y responde desde la calma, no desde la urgencia.`,
+        suggestedQuestions: [
+          `¿Qué señal concreta debería observar primero sobre ${topic}?`,
+          `¿Qué puedo hacer esta semana para acompañar esta tendencia?`,
+        ],
+        premiumSuggestion: "",
+      });
+
       // Fallback responses — with anti-repetition check
       const { topic, subject, emotion } = extractThemeKeywords(question);
       const fallbacks: Record<string, { message: string; suggestedQuestions: string[]; premiumSuggestion: string }[]> = {
