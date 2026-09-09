@@ -104,6 +104,8 @@ export default function CinematicIntro() {
   const signal = clamp((progress - 0.05) / 0.3);
   const portal = clamp((progress - 0.2) / 0.55);
   const reveal = clamp((progress - 0.62) / 0.34);
+  // The last stretch reveals the exact hero underneath; this removes any second-crop jump.
+  const handoff = clamp((progress - 0.88) / 0.12);
   const phraseOpacity = clamp(1 - progress * 2.7);
   const promptOpacity = clamp(1 - progress * 3.1);
   const smooth = "opacity 420ms cubic-bezier(0.22, 1, 0.36, 1), transform 620ms cubic-bezier(0.22, 1, 0.36, 1)";
@@ -112,9 +114,9 @@ export default function CinematicIntro() {
     <div
       className="libertad-viewport fixed inset-0 z-[100] overflow-hidden bg-[#020202]"
       aria-label="Apertura de Libertad Molina"
-      style={{ opacity: closing ? 0 : 1, transition: "opacity 1050ms cubic-bezier(0.22, 1, 0.36, 1)" }}
+      style={{ opacity: closing ? 0 : 1, backgroundColor: `rgba(2, 2, 2, ${1 - handoff})`, transition: "opacity 1050ms cubic-bezier(0.22, 1, 0.36, 1), background-color 380ms cubic-bezier(0.22, 1, 0.36, 1)" }}
     >
-      <div className="libertad-hero-media absolute inset-0" style={{ opacity: reveal, transform: reveal === 1 ? "scale(1)" : `scale(${1.1 - reveal * 0.1})`, transition: smooth }} />
+      <div className="libertad-hero-media absolute inset-0" style={{ opacity: reveal * (1 - handoff), transform: reveal === 1 ? "scale(1)" : `scale(${1.1 - reveal * 0.1})`, transition: smooth }} />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_12%,rgba(0,0,0,0.78)_70%,#020202_100%)]" style={{ opacity: 1 - reveal * 0.76, transition: smooth }} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/55" style={{ opacity: reveal, transition: smooth }} />
 
