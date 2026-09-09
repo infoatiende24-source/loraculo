@@ -195,6 +195,9 @@
 /* ===== Smooth Scroll ===== */
 html {
   scroll-behavior: smooth;
+  /* Reserve the scrollbar gutter before the intro unlocks the page. Without it,
+     the hero can recenter by a few pixels at the exact last-frame hand-off. */
+  scrollbar-gutter: stable;
 }
 
 /* Shared crop for the final portal frame and the hero beneath it. Keeping
