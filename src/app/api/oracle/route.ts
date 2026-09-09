@@ -600,11 +600,11 @@ export async function POST(request: NextRequest) {
             headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
             // The oracle is a live conversation: never leave someone waiting for a
             // slow provider. A quick, complete reading is preferable to a long hang.
-            signal: AbortSignal.timeout(12_000),
+            signal: AbortSignal.timeout(16_000),
             body: JSON.stringify({
               systemInstruction: { parts: [{ text: systemPrompt }] },
               contents: [{ role: "user", parts: [{ text: question }] }],
-              generationConfig: { temperature, maxOutputTokens: 1800 },
+              generationConfig: { temperature, maxOutputTokens: 1600 },
             }),
           }
         );
