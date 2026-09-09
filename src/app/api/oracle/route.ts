@@ -327,8 +327,58 @@ ESTRUCTURA:
    nivel de profundidad + anti-frases + anti-cartas + variedad
    ────────────────────────────────────────────────────────────── */
 
+type ReadingIntent = "predictive" | "relationship" | "practical" | "emotional" | "open";
+
+function buildQuestionAlignmentBlock(question: string): string {
+  const q = question.toLowerCase();
+  const predictive = /\b(futuro|próxim|proxim|pasará|pasara|ocurrir|suceder|vendrá|vendra|evolucion|tendencia|cuándo|cuando|semanas?|meses?|año|ano)\b/.test(q);
+  const relationship = /\b(amor|pareja|relación|relacion|ex|siente|sentimientos|vínculo|vinculo|volver|contactar|nosotros)\b/.test(q);
+  const practical = /\b(trabajo|laboral|empleo|dinero|economía|economia|negocio|proyecto|decisión|decision|estudios)\b/.test(q);
+  const emotional = /\b(ansiedad|miedo|triste|bloque|confus|herida|sanar|duelo|emocion)\b/.test(q);
+
+  const intent: ReadingIntent = predictive
+    ? "predictive"
+    : relationship
+      ? "relationship"
+      : practical
+        ? "practical"
+        : emotional
+          ? "emotional"
+          : "open";
+
+  const common = `\n\nPRIORIDAD ABSOLUTA: COHERENCIA CON LA PREGUNTA
+La pregunta exacta de la persona es: "${question}".
+Responde a esa pregunta antes de abrir interpretaciones secundarias. No cambies el tema, no reutilices una lectura genérica y no hagas afirmaciones incompatibles entre sí. Si hay incertidumbre, nómbrala con honestidad y explica qué elemento puede mover la tendencia.`;
+
+  const guidance: Record<ReadingIntent, string> = {
+    predictive: `MODO PREDICTIVO RESPONSABLE:
+- Da una tendencia clara y condicional, no una sentencia cerrada.
+- Ordena la respuesta en: situación actual, movimiento probable y señal concreta que podría aparecer.
+- Usa ventanas temporales amplias y realistas (por ejemplo, próximos días o semanas); no inventes fechas, hechos verificables ni certezas sobre terceras personas.
+- Termina con una acción o postura que ayude a la persona a influir de forma sana en el camino.`,
+    relationship: `LECTURA DE VÍNCULOS:
+- Responde con cuidado a la dinámica del vínculo, sin presentar pensamientos o decisiones de otra persona como hechos.
+- Distingue entre la energía actual, la tendencia si nada cambia y lo que la persona puede observar o comunicar.
+- No mezcles una predicción sentimental con consejos de trabajo, dinero u otros temas que no se hayan preguntado.`,
+    practical: `LECTURA PRÁCTICA:
+- Lleva el mensaje a la decisión concreta que la persona ha preguntado.
+- Explica el bloqueo, la opción con más potencial y una acción realizable durante esta semana.
+- Evita metáforas largas cuando resten claridad a la respuesta.`,
+    emotional: `LECTURA EMOCIONAL:
+- Parte de la emoción o bloqueo que la persona ha nombrado y mantén la lectura en ese plano.
+- Ofrece una comprensión cálida, una tendencia de alivio o cuidado y un gesto concreto de autocuidado.`,
+    open: `LECTURA ABIERTA:
+- Identifica primero el núcleo de la pregunta y responde de forma directa.
+- Mantén una sola línea narrativa: origen, movimiento y clave práctica.`,
+  };
+
+  return `${common}\n\n${guidance[intent]}\n\nFORMATO DE CALIDAD:
+La primera frase debe contener la respuesta esencial. Desarrolla después la lectura de manera completa y cohesionada. No contradigas esa primera respuesta ni abandones la lectura a mitad de una idea.`;
+}
+
 function buildSystemPrompt(
   type: string,
+  question: string,
   recentCards: string[],
   recentPhrases: string[],
   recentConclusions: string[],
@@ -361,6 +411,7 @@ function buildSystemPrompt(
   prompt += `\n\n${narrativeStyles[selectedStyle]}`;
   prompt += `\n\n${depthLevels[selectedDepth]}`;
   prompt += buildAntiRepetitionBlock(recentPhrases, recentConclusions);
+  prompt += buildQuestionAlignmentBlock(question);
 
   // ── Anti-repetition: cards to avoid ──
   if (recentCards.length > 0 && (type === "tarot" || type === "runas")) {
@@ -522,6 +573,7 @@ export async function POST(request: NextRequest) {
     // ── Build dynamic system prompt ──
     const systemPrompt = buildSystemPrompt(
       type,
+      question,
       Array.isArray(recentCards) ? recentCards : [],
       Array.isArray(recentPhrases) ? recentPhrases : [],
       Array.isArray(recentConclusions) ? recentConclusions : [],
@@ -529,9 +581,9 @@ export async function POST(request: NextRequest) {
       Array.isArray(recentStyles) ? recentStyles : [],
     );
 
-    // ── Variable temperature for more diversity ──
-    const temperatures = [0.7, 0.8, 0.9, 1.0, 1.05];
-    const temperature = temperatures[Math.floor(Math.random() * temperatures.length)];
+    // A stable temperature preserves the oracle's voice and avoids drifting away
+    // from the actual question while keeping enough warmth and variety.
+    const temperature = 0.72;
 
     try {
       let fullMessage = "";
