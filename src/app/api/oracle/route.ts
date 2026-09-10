@@ -613,7 +613,7 @@ export async function POST(request: NextRequest) {
             {
               method: "POST",
               headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
-              signal: AbortSignal.timeout(16_000),
+              signal: AbortSignal.timeout(22_000),
               body: JSON.stringify({
                 systemInstruction: { parts: [{ text: systemPrompt }] },
                 contents: [{ role: "user", parts: [{ text: question }] }],
@@ -634,7 +634,7 @@ export async function POST(request: NextRequest) {
         fullMessage = await Promise.race([
           Promise.any([askGemini(), askDeepSeek()]),
           new Promise<string>((_, reject) => {
-            setTimeout(() => reject(new Error("Tiempo máximo de lectura agotado")), 18_000);
+            setTimeout(() => reject(new Error("Tiempo máximo de lectura agotado")), 24_000);
           }),
         ]);
       } else {
@@ -723,7 +723,11 @@ export async function POST(request: NextRequest) {
         keyPhrases,
         conclusion,
       });
-    } catch {
+    } catch (error) {
+      console.error("[oracle] providers unavailable", {
+        error: error instanceof Error ? error.message : String(error),
+        questionLength: question.length,
+      });
       const fallbackTopic = extractThemeKeywords(question).topic;
       return NextResponse.json({
         message: `Ahora mismo la señal llega más despacio de lo debido y no quiero dejarte esperando. Sobre ${fallbackTopic}, la tendencia pide observar el siguiente paso real antes de forzar una conclusión: mira qué conversación, propuesta o cambio concreto aparece en los próximos días y responde desde la calma, no desde la urgencia.`,
