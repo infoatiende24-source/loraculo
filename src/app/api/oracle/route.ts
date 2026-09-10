@@ -267,7 +267,7 @@ ESTILO BASE:
 
 ESTRUCTURA DE TU RESPUESTA:
 1. CARTA: [EMOJI] [NOMBRE CARTA] - [NUMERAL ROMANO] (primera línea)
-2. LECTURA PERSONALIZADA (450-700 palabras; termina siempre la lectura completa antes del separador)
+2. LECTURA PERSONALIZADA (350-500 palabras; termina siempre la lectura completa antes del separador)
 3. Después de "---": 2 preguntas gancho (personalizadas, pura curiosidad)
 4. Al final: 1 frase premium breve y natural`,
 
@@ -292,7 +292,7 @@ ESTILO BASE:
 
 ESTRUCTURA:
 1. RUNA: [SÍMBOLO] [NOMBRE] - [SIGNIFICADO] [EMOJI] (primera línea)
-2. LECTURA PERSONALIZADA (450-700 palabras; termina siempre la lectura completa antes del separador)
+2. LECTURA PERSONALIZADA (350-500 palabras; termina siempre la lectura completa antes del separador)
 3. Después de "---": 2 preguntas gancho (personalizadas, pura curiosidad)
 4. Al final: 1 frase premium breve y natural`,
 
@@ -316,7 +316,7 @@ ESTILO BASE:
 - Escribe entre 450 y 700 palabras, con párrafos naturales. Debes cerrar la idea completa antes del separador.
 
 ESTRUCTURA:
-1. Respuesta personalizada (450-700 palabras, siempre completa)
+1. Respuesta personalizada (350-500 palabras, siempre completa)
 2. Después de "---": 2 preguntas gancho (personalizadas, pura curiosidad)
 3. Al final: 1 frase premium breve y natural`,
 };
@@ -599,7 +599,7 @@ export async function POST(request: NextRequest) {
           model: "deepseek-chat",
           messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }],
           temperature,
-          max_tokens: 1600,
+          max_tokens: 2600,
         });
         const message = response.choices?.[0]?.message?.content || "";
         if (!message) throw new Error("DeepSeek no devolvió lectura");
@@ -617,7 +617,7 @@ export async function POST(request: NextRequest) {
               body: JSON.stringify({
                 systemInstruction: { parts: [{ text: systemPrompt }] },
                 contents: [{ role: "user", parts: [{ text: question }] }],
-                generationConfig: { temperature, maxOutputTokens: 1600 },
+                generationConfig: { temperature, maxOutputTokens: 2600 },
               }),
             }
           );
@@ -640,6 +640,23 @@ export async function POST(request: NextRequest) {
       } else {
         fullMessage = await askDeepSeek();
       }
+
+      // Do not ever render an abruptly cut word. When a provider reaches its
+      // output boundary, keep the last complete sentence instead.
+      const trimmedMessage = fullMessage.trim();
+      if (trimmedMessage && !/[.!?…»)"*]$/.test(trimmedMessage)) {
+        const lastStop = Math.max(
+          trimmedMessage.lastIndexOf(". "),
+          trimmedMessage.lastIndexOf("! "),
+          trimmedMessage.lastIndexOf("? "),
+          trimmedMessage.lastIndexOf("… ")
+        );
+        if (lastStop > 140) fullMessage = `${trimmedMessage.slice(0, lastStop + 1)}`;
+      }
+      console.info("[oracle] generated reading", {
+        characters: fullMessage.length,
+        completeEnding: /[.!?…»)"*]$/.test(fullMessage.trim()),
+      });
 
       if (!fullMessage) fullMessage = "Vaya, parece que ahora mismo no puedo conectar bien. Inténtalo de nuevo en un ratito, ¿vale?";
 
