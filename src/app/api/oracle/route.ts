@@ -592,68 +592,34 @@ export async function POST(request: NextRequest) {
       let fullMessage = "";
       const geminiKey = process.env.GEMINI_API_KEY;
 
-      const askDeepSeek = async (): Promise<string> => {
-        try {
-          const ZAI = (await import("z-ai-web-dev-sdk")).default;
-          const zai = await ZAI.create();
-          const response = await zai.chat.completions.create({
-            model: "deepseek-chat",
-            messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }],
-            temperature,
-            max_tokens: 2600,
-          });
-          const message = response.choices?.[0]?.message?.content || "";
-          if (!message) throw new Error("DeepSeek no devolvió lectura");
-          return message;
-        } catch (error) {
-          console.error("[oracle] DeepSeek failed", {
-            error: error instanceof Error ? error.message : String(error),
-          });
-          throw error;
-        }
-      };
-
-      if (geminiKey) {
-        const askGemini = async (): Promise<string> => {
-          try {
-            const geminiResponse = await fetch(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
-              signal: AbortSignal.timeout(22_000),
-              body: JSON.stringify({
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-                contents: [{ role: "user", parts: [{ text: question }] }],
-                generationConfig: { temperature, maxOutputTokens: 2600 },
-              }),
-            }
-          );
-          if (!geminiResponse.ok) throw new Error(`Gemini respondió ${geminiResponse.status}`);
-          const geminiData = await geminiResponse.json();
-          const message = geminiData.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || "").join("") || "";
-            if (!message) throw new Error("Gemini no devolvió lectura");
-            return message;
-          } catch (error) {
-            console.error("[oracle] Gemini failed", {
-              error: error instanceof Error ? error.message : String(error),
-            });
-            throw error;
-          }
-        };
-
-        // Gemini remains the preferred voice, but a complete response from the
-        // proven fast engine wins if Gemini is slow. The visitor never sees a
-        // generic timeout answer while a capable oracle is available.
-        fullMessage = await Promise.race([
-          Promise.any([askGemini(), askDeepSeek()]),
-          new Promise<string>((_, reject) => {
-            setTimeout(() => reject(new Error("Tiempo máximo de lectura agotado")), 24_000);
-          }),
-        ]);
-      } else {
-        fullMessage = await askDeepSeek();
+      if (!geminiKey) {
+        throw new Error("Falta GEMINI_API_KEY en producción");
       }
+
+      const geminiResponse = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
+          signal: AbortSignal.timeout(28_000),
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ role: "user", parts: [{ text: question }] }],
+            generationConfig: { temperature, maxOutputTokens: 2200 },
+          }),
+        }
+      );
+
+      if (!geminiResponse.ok) {
+        const detail = await geminiResponse.text();
+        throw new Error(`Gemini 2.5 Flash respondió ${geminiResponse.status}: ${detail.slice(0, 240)}`);
+      }
+
+      const geminiData = await geminiResponse.json();
+      fullMessage = geminiData.candidates?.[0]?.content?.parts
+        ?.map((part: { text?: string }) => part.text || "")
+        .join("") || "";
+      if (!fullMessage) throw new Error("Gemini 2.5 Flash no devolvió lectura");
 
       // Do not ever render an abruptly cut word. When a provider reaches its
       // output boundary, keep the last complete sentence instead.
