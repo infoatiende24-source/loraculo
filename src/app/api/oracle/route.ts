@@ -596,29 +596,51 @@ export async function POST(request: NextRequest) {
         throw new Error("Falta GEMINI_API_KEY en producción");
       }
 
-      const geminiResponse = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
-          signal: AbortSignal.timeout(42_000),
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: systemPrompt }] },
-            contents: [{ role: "user", parts: [{ text: question }] }],
-            generationConfig: { temperature, maxOutputTokens: 3600 },
-          }),
-        }
-      );
+      const generateWithGemini = async (userText: string) => {
+        const response = await fetch(
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
+            signal: AbortSignal.timeout(42_000),
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemPrompt }] },
+              contents: [{ role: "user", parts: [{ text: userText }] }],
+              generationConfig: { temperature, maxOutputTokens: 8192 },
+            }),
+          }
+        );
 
-      if (!geminiResponse.ok) {
-        const detail = await geminiResponse.text();
-        throw new Error(`Gemini 3.6 Flash respondió ${geminiResponse.status}: ${detail.slice(0, 240)}`);
+        if (!response.ok) {
+          const detail = await response.text();
+          throw new Error(`Gemini 3.6 Flash respondió ${response.status}: ${detail.slice(0, 240)}`);
+        }
+
+        const data = await response.json();
+        return {
+          text: data.candidates?.[0]?.content?.parts
+            ?.map((part: { text?: string }) => part.text || "")
+            .join("") || "",
+          finishReason: data.candidates?.[0]?.finishReason || "UNKNOWN",
+        };
+      };
+
+      const firstPass = await generateWithGemini(question);
+      fullMessage = firstPass.text.trim();
+      let finishReason = firstPass.finishReason;
+
+      // A valid reading must contain its final separator. If the provider stops
+      // midway through the reading, ask it to continue rather than exposing an
+      // unfinished sentence to the visitor.
+      if (fullMessage && !/\n---\s*\n/.test(fullMessage)) {
+        const continuation = await generateWithGemini(
+          `Continúa EXACTAMENTE la lectura que quedó incompleta. No repitas ni resumas el texto ya escrito. Retoma desde su última frase, completa las secciones que faltan y termina obligatoriamente con "\n---\n", dos preguntas gancho personalizadas y una frase premium breve.\n\nPREGUNTA ORIGINAL:\n${question}\n\nTEXTO YA ESCRITO:\n"""${fullMessage}"""`
+        );
+        const appendix = continuation.text.trim();
+        if (appendix) fullMessage = `${fullMessage}\n\n${appendix}`;
+        finishReason = `${firstPass.finishReason} → ${continuation.finishReason}`;
       }
 
-      const geminiData = await geminiResponse.json();
-      fullMessage = geminiData.candidates?.[0]?.content?.parts
-        ?.map((part: { text?: string }) => part.text || "")
-        .join("") || "";
       if (!fullMessage) throw new Error("Gemini 3.6 Flash no devolvió lectura");
 
       // Preserve the model's full response exactly as received. A previous
