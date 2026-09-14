@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LIBERTAD_ORACLE_BRAIN } from "@/lib/libertad-brain";
 
+const ORACLE_COMPLETION_BASELINE = Object.freeze({
+  model: "gemini-3.6-flash",
+  maxOutputTokens: 8192,
+  requiredSeparator: "---",
+  maxGenerationPasses: 2,
+});
+
+/**
+ * BASE SELLADA DEL ORÁCULO
+ * Una lectura no se considera válida hasta que incluya el separador final.
+ * Si Gemini se interrumpe, se completa automáticamente antes de enviarla.
+ * No rebajar esta protección sin una prueba real de lectura completa.
+ */
+
 /* ══════════════════════════════════════════════════════════════
    SISTEMA DE ORÁCULO v2 — ARQUITECTURA ANTI-REPETICIÓN
    ══════════════════════════════════════════════════════════════
@@ -598,7 +612,7 @@ export async function POST(request: NextRequest) {
 
       const generateWithGemini = async (userText: string) => {
         const response = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
+          `https://generativelanguage.googleapis.com/v1beta/models/${ORACLE_COMPLETION_BASELINE.model}:generateContent`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
@@ -606,7 +620,7 @@ export async function POST(request: NextRequest) {
             body: JSON.stringify({
               systemInstruction: { parts: [{ text: systemPrompt }] },
               contents: [{ role: "user", parts: [{ text: userText }] }],
-              generationConfig: { temperature, maxOutputTokens: 8192 },
+              generationConfig: { temperature, maxOutputTokens: ORACLE_COMPLETION_BASELINE.maxOutputTokens },
             }),
           }
         );
@@ -632,9 +646,9 @@ export async function POST(request: NextRequest) {
       // A valid reading must contain its final separator. If the provider stops
       // midway through the reading, ask it to continue rather than exposing an
       // unfinished sentence to the visitor.
-      if (fullMessage && !/\n---\s*\n/.test(fullMessage)) {
+      if (fullMessage && !fullMessage.includes(`\n${ORACLE_COMPLETION_BASELINE.requiredSeparator}\n`)) {
         const continuation = await generateWithGemini(
-          `Continúa EXACTAMENTE la lectura que quedó incompleta. No repitas ni resumas el texto ya escrito. Retoma desde su última frase, completa las secciones que faltan y termina obligatoriamente con "\n---\n", dos preguntas gancho personalizadas y una frase premium breve.\n\nPREGUNTA ORIGINAL:\n${question}\n\nTEXTO YA ESCRITO:\n"""${fullMessage}"""`
+          `Continúa EXACTAMENTE la lectura que quedó incompleta. No repitas ni resumas el texto ya escrito. Retoma desde su última frase, completa las secciones que faltan y termina obligatoriamente con "\n${ORACLE_COMPLETION_BASELINE.requiredSeparator}\n", dos preguntas gancho personalizadas y una frase premium breve.\n\nPREGUNTA ORIGINAL:\n${question}\n\nTEXTO YA ESCRITO:\n"""${fullMessage}"""`
         );
         const appendix = continuation.text.trim();
         if (appendix) fullMessage = `${fullMessage}\n\n${appendix}`;
