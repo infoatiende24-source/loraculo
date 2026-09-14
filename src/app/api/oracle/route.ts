@@ -593,22 +593,30 @@ export async function POST(request: NextRequest) {
       const geminiKey = process.env.GEMINI_API_KEY;
 
       const askDeepSeek = async (): Promise<string> => {
-        const ZAI = (await import("z-ai-web-dev-sdk")).default;
-        const zai = await ZAI.create();
-        const response = await zai.chat.completions.create({
-          model: "deepseek-chat",
-          messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }],
-          temperature,
-          max_tokens: 2600,
-        });
-        const message = response.choices?.[0]?.message?.content || "";
-        if (!message) throw new Error("DeepSeek no devolvió lectura");
-        return message;
+        try {
+          const ZAI = (await import("z-ai-web-dev-sdk")).default;
+          const zai = await ZAI.create();
+          const response = await zai.chat.completions.create({
+            model: "deepseek-chat",
+            messages: [{ role: "system", content: systemPrompt }, { role: "user", content: question }],
+            temperature,
+            max_tokens: 2600,
+          });
+          const message = response.choices?.[0]?.message?.content || "";
+          if (!message) throw new Error("DeepSeek no devolvió lectura");
+          return message;
+        } catch (error) {
+          console.error("[oracle] DeepSeek failed", {
+            error: error instanceof Error ? error.message : String(error),
+          });
+          throw error;
+        }
       };
 
       if (geminiKey) {
         const askGemini = async (): Promise<string> => {
-          const geminiResponse = await fetch(
+          try {
+            const geminiResponse = await fetch(
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
             {
               method: "POST",
@@ -624,8 +632,14 @@ export async function POST(request: NextRequest) {
           if (!geminiResponse.ok) throw new Error(`Gemini respondió ${geminiResponse.status}`);
           const geminiData = await geminiResponse.json();
           const message = geminiData.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || "").join("") || "";
-          if (!message) throw new Error("Gemini no devolvió lectura");
-          return message;
+            if (!message) throw new Error("Gemini no devolvió lectura");
+            return message;
+          } catch (error) {
+            console.error("[oracle] Gemini failed", {
+              error: error instanceof Error ? error.message : String(error),
+            });
+            throw error;
+          }
         };
 
         // Gemini remains the preferred voice, but a complete response from the
