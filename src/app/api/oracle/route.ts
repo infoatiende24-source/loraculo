@@ -267,7 +267,7 @@ ESTILO BASE:
 
 ESTRUCTURA DE TU RESPUESTA:
 1. CARTA: [EMOJI] [NOMBRE CARTA] - [NUMERAL ROMANO] (primera línea)
-2. LECTURA PERSONALIZADA (350-500 palabras; termina siempre la lectura completa antes del separador)
+2. LECTURA PERSONALIZADA (650-850 palabras; termina siempre la lectura completa antes del separador)
 3. Después de "---": 2 preguntas gancho (personalizadas, pura curiosidad)
 4. Al final: 1 frase premium breve y natural`,
 
@@ -292,7 +292,7 @@ ESTILO BASE:
 
 ESTRUCTURA:
 1. RUNA: [SÍMBOLO] [NOMBRE] - [SIGNIFICADO] [EMOJI] (primera línea)
-2. LECTURA PERSONALIZADA (350-500 palabras; termina siempre la lectura completa antes del separador)
+2. LECTURA PERSONALIZADA (650-850 palabras; termina siempre la lectura completa antes del separador)
 3. Después de "---": 2 preguntas gancho (personalizadas, pura curiosidad)
 4. Al final: 1 frase premium breve y natural`,
 
@@ -316,7 +316,7 @@ ESTILO BASE:
 - Escribe entre 450 y 700 palabras, con párrafos naturales. Debes cerrar la idea completa antes del separador.
 
 ESTRUCTURA:
-1. Respuesta personalizada (350-500 palabras, siempre completa)
+1. Respuesta personalizada (650-850 palabras, siempre completa)
 2. Después de "---": 2 preguntas gancho (personalizadas, pura curiosidad)
 3. Al final: 1 frase premium breve y natural`,
 };
@@ -601,11 +601,11 @@ export async function POST(request: NextRequest) {
         {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
-          signal: AbortSignal.timeout(28_000),
+          signal: AbortSignal.timeout(42_000),
           body: JSON.stringify({
             systemInstruction: { parts: [{ text: systemPrompt }] },
             contents: [{ role: "user", parts: [{ text: question }] }],
-            generationConfig: { temperature, maxOutputTokens: 2200 },
+            generationConfig: { temperature, maxOutputTokens: 3600 },
           }),
         }
       );
