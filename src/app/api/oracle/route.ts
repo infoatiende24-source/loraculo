@@ -597,7 +597,7 @@ export async function POST(request: NextRequest) {
       }
 
       const geminiResponse = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
         {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
@@ -612,14 +612,14 @@ export async function POST(request: NextRequest) {
 
       if (!geminiResponse.ok) {
         const detail = await geminiResponse.text();
-        throw new Error(`Gemini 2.5 Flash respondió ${geminiResponse.status}: ${detail.slice(0, 240)}`);
+        throw new Error(`Gemini 3.6 Flash respondió ${geminiResponse.status}: ${detail.slice(0, 240)}`);
       }
 
       const geminiData = await geminiResponse.json();
       fullMessage = geminiData.candidates?.[0]?.content?.parts
         ?.map((part: { text?: string }) => part.text || "")
         .join("") || "";
-      if (!fullMessage) throw new Error("Gemini 2.5 Flash no devolvió lectura");
+      if (!fullMessage) throw new Error("Gemini 3.6 Flash no devolvió lectura");
 
       // Do not ever render an abruptly cut word. When a provider reaches its
       // output boundary, keep the last complete sentence instead.
