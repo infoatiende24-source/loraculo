@@ -621,21 +621,11 @@ export async function POST(request: NextRequest) {
         .join("") || "";
       if (!fullMessage) throw new Error("Gemini 3.6 Flash no devolvió lectura");
 
-      // Do not ever render an abruptly cut word. When a provider reaches its
-      // output boundary, keep the last complete sentence instead.
-      const trimmedMessage = fullMessage.trim();
-      if (trimmedMessage && !/[.!?…»)"*]$/.test(trimmedMessage)) {
-        const lastStop = Math.max(
-          trimmedMessage.lastIndexOf(". "),
-          trimmedMessage.lastIndexOf("! "),
-          trimmedMessage.lastIndexOf("? "),
-          trimmedMessage.lastIndexOf("… ")
-        );
-        if (lastStop > 140) fullMessage = `${trimmedMessage.slice(0, lastStop + 1)}`;
-      }
+      // Preserve the model's full response exactly as received. A previous
+      // sentence-boundary guard could discard most of an otherwise valid reading.
+      fullMessage = fullMessage.trim();
       console.info("[oracle] generated reading", {
         characters: fullMessage.length,
-        completeEnding: /[.!?…»)"*]$/.test(fullMessage.trim()),
       });
 
       if (!fullMessage) fullMessage = "Vaya, parece que ahora mismo no puedo conectar bien. Inténtalo de nuevo en un ratito, ¿vale?";
