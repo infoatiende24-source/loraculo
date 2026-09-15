@@ -6,6 +6,7 @@ const ORACLE_COMPLETION_BASELINE = Object.freeze({
   maxOutputTokens: 8192,
   requiredSeparator: "---",
   maxGenerationPasses: 2,
+  maxProviderAttempts: 3,
 });
 
 /**
@@ -611,32 +612,45 @@ export async function POST(request: NextRequest) {
       }
 
       const generateWithGemini = async (userText: string) => {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${ORACLE_COMPLETION_BASELINE.model}:generateContent`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
-            signal: AbortSignal.timeout(42_000),
-            body: JSON.stringify({
-              systemInstruction: { parts: [{ text: systemPrompt }] },
-              contents: [{ role: "user", parts: [{ text: userText }] }],
-              generationConfig: { temperature, maxOutputTokens: ORACLE_COMPLETION_BASELINE.maxOutputTokens },
-            }),
-          }
-        );
+        let lastError = "Gemini no respondió";
+        for (let attempt = 1; attempt <= ORACLE_COMPLETION_BASELINE.maxProviderAttempts; attempt += 1) {
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${ORACLE_COMPLETION_BASELINE.model}:generateContent`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
+              signal: AbortSignal.timeout(42_000),
+              body: JSON.stringify({
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                contents: [{ role: "user", parts: [{ text: userText }] }],
+                generationConfig: { temperature, maxOutputTokens: ORACLE_COMPLETION_BASELINE.maxOutputTokens },
+              }),
+            }
+          );
 
-        if (!response.ok) {
+          if (response.ok) {
+            const data = await response.json();
+            return {
+              text: data.candidates?.[0]?.content?.parts
+                ?.map((part: { text?: string }) => part.text || "")
+                .join("") || "",
+              finishReason: data.candidates?.[0]?.finishReason || "UNKNOWN",
+            };
+          }
+
           const detail = await response.text();
-          throw new Error(`Gemini 3.6 Flash respondió ${response.status}: ${detail.slice(0, 240)}`);
+          lastError = `Gemini 3.6 Flash respondió ${response.status}: ${detail.slice(0, 240)}`;
+          const isTemporary = response.status === 429 || response.status === 503;
+          if (!isTemporary || attempt === ORACLE_COMPLETION_BASELINE.maxProviderAttempts) break;
+
+          console.warn("[oracle] retrying Gemini after temporary provider overload", {
+            attempt,
+            status: response.status,
+          });
+          await new Promise((resolve) => setTimeout(resolve, attempt * 900));
         }
 
-        const data = await response.json();
-        return {
-          text: data.candidates?.[0]?.content?.parts
-            ?.map((part: { text?: string }) => part.text || "")
-            .join("") || "",
-          finishReason: data.candidates?.[0]?.finishReason || "UNKNOWN",
-        };
+        throw new Error(lastError);
       };
 
       const firstPass = await generateWithGemini(question);
