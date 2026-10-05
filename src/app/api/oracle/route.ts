@@ -604,7 +604,10 @@ export async function POST(request: NextRequest) {
       const geminiKey = process.env.GEMINI_API_KEY;
 
       if (!geminiKey) {
-        throw new Error      const generateWithGemini = async (userText: string) => {
+        throw new Error("Falta GEMINI_API_KEY en producción");
+      }
+
+      const generateWithGemini = async (userText: string) => {
         let lastError = "Gemini no respondió";
         for (const model of ORACLE_COMPLETION_BASELINE.models) {
           const response = await fetch(
