@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { LIBERTAD_ORACLE_BRAIN } from "@/lib/libertad-brain";
 
 const ORACLE_COMPLETION_BASELINE = Object.freeze({
-  model: "gemini-3.6-flash",
+  models: ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3-flash-preview"],
   maxOutputTokens: 8192,
   requiredSeparator: "---",
   maxGenerationPasses: 2,
@@ -604,14 +604,11 @@ export async function POST(request: NextRequest) {
       const geminiKey = process.env.GEMINI_API_KEY;
 
       if (!geminiKey) {
-        throw new Error("Falta GEMINI_API_KEY en producción");
-      }
-
-      const generateWithGemini = async (userText: string) => {
+        throw new Error      const generateWithGemini = async (userText: string) => {
         let lastError = "Gemini no respondió";
-        for (let attempt = 1; attempt <= ORACLE_COMPLETION_BASELINE.maxProviderAttempts; attempt += 1) {
+        for (const model of ORACLE_COMPLETION_BASELINE.models) {
           const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${ORACLE_COMPLETION_BASELINE.model}:generateContent`,
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
@@ -626,6 +623,7 @@ export async function POST(request: NextRequest) {
 
           if (response.ok) {
             const data = await response.json();
+            console.info("[oracle] Gemini model selected", { model });
             return {
               text: data.candidates?.[0]?.content?.parts
                 ?.map((part: { text?: string }) => part.text || "")
@@ -635,16 +633,20 @@ export async function POST(request: NextRequest) {
           }
 
           const detail = await response.text();
-          lastError = `Gemini 3.6 Flash respondió ${response.status}: ${detail.slice(0, 240)}`;
+          lastError = `${model} respondió ${response.status}: ${detail.slice(0, 240)}`;
           const isTemporary = response.status === 429 || response.status === 503;
-          if (!isTemporary || attempt === ORACLE_COMPLETION_BASELINE.maxProviderAttempts) break;
+          if (!isTemporary) break;
 
-          console.warn("[oracle] retrying Gemini after temporary provider overload", {
-            attempt,
+          console.warn("[oracle] switching Gemini model after temporary provider overload", {
+            model,
             status: response.status,
           });
-          await new Promise((resolve) => setTimeout(resolve, attempt * 900));
         }
+
+        throw new Error(lastError);
+      };
+
+}
 
         throw new Error(lastError);
       };
