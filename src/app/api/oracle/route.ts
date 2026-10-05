@@ -646,11 +646,6 @@ export async function POST(request: NextRequest) {
         throw new Error(lastError);
       };
 
-}
-
-        throw new Error(lastError);
-      };
-
       const firstPass = await generateWithGemini(question);
       fullMessage = firstPass.text.trim();
       let finishReason = firstPass.finishReason;
